@@ -7,6 +7,8 @@ import org.springframework.data.jpa.repository.JpaRepository;
 import java.util.List;
 
 public interface ProductRawMaterialRepository extends JpaRepository<ProductRawMaterial, ProductRawMaterialId> {
-    List<ProductRawMaterial> findByProductId(Long productId);
-    void deleteByProductId(Long productId);
+
+    List<ProductRawMaterial> findByProduct_Id(Long productId);
+
+    void deleteByProduct_Id(Long productId);
 }
