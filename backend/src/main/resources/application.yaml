@@ -1,3 +1,15 @@
+server:
+  port: 8080
+
 spring:
-  application:
-    name: inventory
+  datasource:
+    url: jdbc:postgresql://localhost:5432/autoflex_db
+    username: postgres
+    password: 729016
+
+  jpa:
+    hibernate:
+      ddl-auto: update
+    properties:
+      hibernate:
+        format_sql: true

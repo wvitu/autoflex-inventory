@@ -1,0 +1,23 @@
+# OS
+.DS_Store
+
+# IDE
+.idea/
+.vscode/
+*.iml
+
+# Logs
+*.log
+
+# Node
+node_modules/
+dist/
+build/
+.vite/
+
+# Java
+target/
+*.class
+
+# Env
+.env
