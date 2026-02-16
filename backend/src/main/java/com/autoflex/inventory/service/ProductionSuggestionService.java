@@ -5,6 +5,7 @@ import com.autoflex.inventory.domain.ProductRawMaterial;
 import com.autoflex.inventory.domain.RawMaterial;
 import com.autoflex.inventory.dto.ProductionSuggestionItemResponse;
 import com.autoflex.inventory.dto.ProductionSuggestionResponse;
+import com.autoflex.inventory.dto.RawMaterialStockResponse;
 import com.autoflex.inventory.repository.ProductRawMaterialRepository;
 import com.autoflex.inventory.repository.ProductRepository;
 import com.autoflex.inventory.repository.RawMaterialRepository;
@@ -27,7 +28,7 @@ public class ProductionSuggestionService {
     @Transactional(readOnly = true)
     public ProductionSuggestionResponse suggest() {
 
-        // snapshot do estoque (virtual, pra ir “consumindo”)
+        // virtual stock snapshot (we will "consume" this map)
         Map<Long, BigDecimal> stock = new HashMap<>();
         for (RawMaterial rm : rawMaterialRepository.findAll()) {
             stock.put(rm.getId(), rm.getStockQuantity());
@@ -42,7 +43,7 @@ public class ProductionSuggestionService {
             List<ProductRawMaterial> bom = productRawMaterialRepository.findByProduct_Id(product.getId());
 
             if (bom.isEmpty()) {
-                continue; // sem composição, não sugere
+                continue;
             }
 
             int producible = calculateProducibleQuantity(bom, stock);
@@ -51,7 +52,6 @@ public class ProductionSuggestionService {
                 continue;
             }
 
-            // consumir estoque virtual
             consumeStock(bom, stock, producible);
 
             BigDecimal itemTotal = product.getPrice()
@@ -70,7 +70,20 @@ public class ProductionSuggestionService {
             ));
         }
 
-        return new ProductionSuggestionResponse(items, grandTotal.setScale(2, RoundingMode.HALF_UP));
+        List<RawMaterialStockResponse> remainingStock = rawMaterialRepository.findAll().stream()
+                .map(rm -> new RawMaterialStockResponse(
+                        rm.getId(),
+                        rm.getCode(),
+                        rm.getName(),
+                        stock.getOrDefault(rm.getId(), BigDecimal.ZERO)
+                ))
+                .toList();
+
+        return new ProductionSuggestionResponse(
+                items,
+                grandTotal.setScale(2, RoundingMode.HALF_UP),
+                remainingStock
+        );
     }
 
     private int calculateProducibleQuantity(List<ProductRawMaterial> bom, Map<Long, BigDecimal> stock) {
@@ -88,6 +101,7 @@ public class ProductionSuggestionService {
             int possible = available.divide(required, 0, RoundingMode.FLOOR).intValue();
             max = Math.min(max, possible);
         }
+
         return max;
     }
 

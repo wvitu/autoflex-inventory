@@ -5,5 +5,6 @@ import java.util.List;
 
 public record ProductionSuggestionResponse(
         List<ProductionSuggestionItemResponse> items,
-        BigDecimal totalValue
+        BigDecimal totalValue,
+        List<RawMaterialStockResponse> remainingStock
 ) {}
